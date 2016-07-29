@@ -46,6 +46,15 @@ func (userStruct *User) Find(id string) (user User, err error) {
   return userFound, nil
 }
 
+// FindAll finds all users from collections
+func (userStruct *User) FindAll() (users []User, err error) {
+  users, err = readUsersFromFile()
+  if err != nil {
+    return users, err
+  }
+  return users, nil
+}
+
 func getUserByID(id string) (user User, err error) {
   // Open File
   users, err := readUsersFromFile()

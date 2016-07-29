@@ -12,6 +12,20 @@ type jsonResponseSourceObject interface {}
 // UserIndex lists users
 func UserIndex(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params) {
   println("UserIndex")
+  var user User
+  users, err := user.FindAll()
+  if err != nil {
+    JSONResponse := JSONError {
+      Status: "Error",
+      HTTPErrorCode: http.StatusNotFound, 
+      Message: "No user found",
+    }
+    JSONResponse.Send(response)
+    return
+  } 
+
+  // Send user list
+   sendJSONResponse(users, response)
 }
 
 // UserCreate create a new user
