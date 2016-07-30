@@ -5,6 +5,7 @@ import (
   "github.com/julienschmidt/httprouter"
   "encoding/json"
   "fmt"
+  "regexp"
 )
 
 type jsonResponseSourceObject interface {}
@@ -28,9 +29,59 @@ func UserIndex(response http.ResponseWriter, request *http.Request, routeParams 
    sendJSONResponse(users, response)
 }
 
-// UserCreate create a new user
+// UserCreate create a new user via POST
 func UserCreate(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params) {
   println("UserCreate")
+  
+  request.ParseForm()
+  
+  // Validation
+  if len(request.Form.Get("mail")) < 1 {
+    // error
+    JSONResponse := JSONError {
+      Status: "Error",
+      HTTPErrorCode: http.StatusBadRequest, 
+      Message: "'mail' parameter is mandatory",
+    }
+    JSONResponse.Send(response)
+    return
+  }
+
+  // Validate email via regexp
+  match, _ := regexp.MatchString(`^([\w\.\_]{2,10})@(\w{1,}).([a-z]{2,4})$`, request.Form.Get("mail"))
+  if !match {
+    JSONResponse := JSONError {
+      Status: "Error",
+      HTTPErrorCode: http.StatusBadRequest, 
+      Message: "'mail' parameter is not valid. Please use a valid mail address. You sent: " + request.Form.Get("mail"),
+    }
+    JSONResponse.Send(response)
+    return
+  }
+
+  // Check for existence
+  found, _ := getUserByMail(request.Form.Get("mail"))
+  
+  // err is true if not found
+  if len(found.Id) > 0 {
+    JSONResponse := JSONError {
+      Status: "Error",
+      HTTPErrorCode: http.StatusBadRequest, 
+      Message: "A user is already registered with this mail",
+    }
+    JSONResponse.Send(response)
+    return
+  }
+  
+  fmt.Printf("mail %+v", request.Form.Get("mail"))
+
+  // Creation
+  user := User{Id: "", Mail: request.Form.Get("mail")}
+  user.generateId()
+  
+  // @TODO insert to database
+  fmt.Printf("new user: %+v", user)
+  sendJSONResponse(user, response)
 }
 
 // UserShow display a user
@@ -71,7 +122,6 @@ func UserUpdate(response http.ResponseWriter, request *http.Request, routeParams
 }
 
 func sendJSONResponse(object jsonResponseSourceObject, response http.ResponseWriter) {
-  fmt.Printf("%+v", object)
   response.Header().Set("Content-Type", "application/json")
   jsonResponse, err := json.Marshal(object)
   if err != nil {
