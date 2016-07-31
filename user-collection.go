@@ -1,17 +1,37 @@
 package main
 
 import (
-  "encoding/json"
-  "io/ioutil"
   "fmt"
+  "gopkg.in/mgo.v2"
+  "gopkg.in/mgo.v2/bson"
   "github.com/satori/go.uuid"
-  "reflect"
 )
 
 const (
   configFile = "collections/users.json"
   idLength = 8
 )
+
+
+func init() {
+  // get config
+
+  connectToMongo()
+}
+
+var mongoSession *mgo.Session
+var userCollection *mgo.Collection
+type mongoResult interface {} 
+
+func connectToMongo() {
+  var err error
+  mongoSession, err = mgo.Dial("localhost:27017")
+  if err != nil {
+    panic("Can't connect to database")
+  }
+  mongoSession.SetMode(mgo.Monotonic, true)
+  userCollection = mongoSession.DB("testgo").C("users")
+}
 
 // @TODO move this to a dedicated dir ?
 type account struct {
@@ -30,35 +50,40 @@ type post struct {
 
 // User base class. Has accounts and has posts
 type User struct {
-  Id string
+  ID string
   Mail string
-  accounts []account
-  posts []post
+  Accounts []account
+  Posts []post
 }
 
 // generateId creates a pseudo ranodom string for the user Id 
-func (userStruct *User) generateId() {
-  uuidId := []byte(uuid.NewV1().String())
+func (userStruct *User) generateID() {
+  uuidID := []byte(uuid.NewV1().String())
   // Cut to 8 char length 
-  userStruct.Id = string(uuidId[:idLength])
+  userStruct.ID = string(uuidID[:idLength])
+}
+
+func (userStruct *User) insert() (err error) {
+  err = userCollection.Insert(&userStruct)
+  return err
 }
 
 // Find public method of User struct to find a user by id
-func (userStruct *User) Find(id string) (user User, err error) {
-  userFound, err := getUserByID(id)
+func (userStruct *User) Find(id string) (user User, err error) { 
+  user, err = getUserByID(id)
   if err != nil {
     // no user found
     return user, err
   }
-
-  userStruct.Id = userFound.Id
-  userStruct.Mail = userFound.Mail
-  return userFound, nil
+  
+  return user, nil
 }
 
 // FindAll finds all users from collections
 func (userStruct *User) FindAll() (users []User, err error) {
-  users, err = readUsersFromFile()
+  query := bson.M{}
+  fmt.Printf("mongo query %+v", query)
+  err = userCollection.Find(query).All(&users)
   if err != nil {
     return users, err
   }
@@ -66,50 +91,24 @@ func (userStruct *User) FindAll() (users []User, err error) {
 }
 
 func getUserByID(id string) (user User, err error) {
-  return findBy("Id", id)
+  return findBy("id", id)
 }
 
 func getUserByMail(mail string) (user User, err error) {
-  return findBy("Mail", mail)
+  return findBy("mail", mail)
 }
 
 // Find user entity by some of its value
 // field: name of field, value: value to search for the field
 func findBy(field string, value string) (user User, err error) {
-  // Open File
-  users, err := readUsersFromFile()
+  // query := bson.M{field: value}
+  query := bson.M{field: value}
+  fmt.Printf("mongo query %+v", query)
+  err = userCollection.Find(query).One(&user)
+  fmt.Printf("mongo result %+v", user)
   if err != nil {
     return user, err
   }
-  // Walk trough all the users, return when value found in field
-  var fieldValue string
-  for _, user := range users {
-    // Get the value of the field. Works only when the field's value type is a string
-    fieldValue = reflect.ValueOf(user).FieldByName(field).String()
-    // Found?
-    if fieldValue == value {
-      return user, nil
-    }
-  }
-
-  // Not found
-  err = fmt.Errorf("No matching user found by %s: %s", field, value)
-  return user, err
-}
-
-func readUsersFromFile() (users []User, err error) {
-  file, err := ioutil.ReadFile(configFile)
-  if err != nil {
-    return users, err 
-  }
-
-  // Luca 14:45-kor aludt el
   
-  err = json.Unmarshal(file, &users)
-  if err != nil {
-    fmt.Println("error: ", err)
-    return users, err
-  }
-  
-  return users, nil
+  return user, nil
 }

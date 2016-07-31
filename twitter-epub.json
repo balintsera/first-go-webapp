@@ -1,0 +1,5 @@
+{
+  "app-config": {
+    "mongo-url": "localhost:27017"
+  }
+}

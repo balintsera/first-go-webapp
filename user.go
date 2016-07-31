@@ -61,9 +61,9 @@ func UserCreate(response http.ResponseWriter, request *http.Request, routeParams
 
   // Check for existence
   found, _ := getUserByMail(request.Form.Get("mail"))
-  
+  fmt.Printf("found mail: %+v", found)
   // err is true if not found
-  if len(found.Id) > 0 {
+  if len(found.Mail) > 0 {
     JSONResponse := JSONError {
       Status: "Error",
       HTTPErrorCode: http.StatusBadRequest, 
@@ -76,8 +76,9 @@ func UserCreate(response http.ResponseWriter, request *http.Request, routeParams
   fmt.Printf("mail %+v", request.Form.Get("mail"))
 
   // Creation
-  user := User{Id: "", Mail: request.Form.Get("mail")}
-  user.generateId()
+  user := User{Mail: request.Form.Get("mail")}
+  user.generateID()
+  user.insert()
   
   // @TODO insert to database
   fmt.Printf("new user: %+v", user)
