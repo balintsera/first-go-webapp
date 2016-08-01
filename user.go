@@ -5,7 +5,7 @@ import (
   "github.com/julienschmidt/httprouter"
   "encoding/json"
   "fmt"
-  "regexp"
+  "reflect"
 )
 
 type jsonResponseSourceObject interface {}
@@ -35,9 +35,9 @@ func UserCreate(response http.ResponseWriter, request *http.Request, routeParams
   
   request.ParseForm()
   
-  // Validation
+  // Validation: is mail field set?
   if len(request.Form.Get("mail")) < 1 {
-    // error
+    // Not set, send error
     JSONResponse := JSONError {
       Status: "Error",
       HTTPErrorCode: http.StatusBadRequest, 
@@ -48,8 +48,9 @@ func UserCreate(response http.ResponseWriter, request *http.Request, routeParams
   }
 
   // Validate email via regexp
-  match, _ := regexp.MatchString(`^([\w\.\_]{2,10})@(\w{1,}).([a-z]{2,4})$`, request.Form.Get("mail"))
-  if !match {
+  validator := Validation{fieldType: FieldTypeMail, value: request.Form.Get("mail")}
+  validator.Run()
+  if !validator.valid {
     JSONResponse := JSONError {
       Status: "Error",
       HTTPErrorCode: http.StatusBadRequest, 
@@ -119,7 +120,78 @@ func UserShow(response http.ResponseWriter, request *http.Request, routeParams h
 
 // UserUpdate update a user
 func UserUpdate(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params) {
+  request.ParseForm()
+  fmt.Printf("put request %+v", request.Form)
   println("UserUpdate")
+ 
+  enabledFormFields := [1]string{"mail"}
+  user := User{ID: routeParams.ByName("id")}
+  for _, field := range enabledFormFields {
+    // Get data from field
+    value := request.Form.Get(field)
+    if value == "" {
+      continue
+    }
+    err := validateFormField(value, field)
+    if err != nil {
+        JSONResponse := JSONError {
+          Status: "Error",
+          HTTPErrorCode: http.StatusBadRequest, 
+          Message: "Invalid form value in request: " + value + " for field: " + field,
+        }
+        JSONResponse.Send(response)
+        return
+    }
+    fmt.Printf("mail after validation: %+v", value)
+    err = addValidFieldValueToUser(field, value, &user)
+    if err != nil {
+      JSONResponse := JSONError {
+          Status: "Error",
+          HTTPErrorCode: http.StatusInternalServerError, 
+          Message: "Unknown error when setting user field: " + field,
+        }
+        JSONResponse.Send(response)
+        return
+    }
+
+  }
+  err := user.Update()
+  if err != nil {
+    JSONResponse := JSONError {
+      Status: "Error",
+      HTTPErrorCode: http.StatusInternalServerError, 
+      Message: "Eerror when saving user",
+    }
+    fmt.Printf("Error: %+v", err)
+    JSONResponse.Send(response)
+    return
+  }
+}
+
+func validateFormField(fieldValue string, fieldName string) (err error) {
+  // Validate data
+  validator := Validation{value: fieldValue, fieldName: fieldName}
+  validator.SetRule(0)
+  validator.Run()
+  if !validator.valid {
+      return 
+  }
+  return
+}
+
+func addValidFieldValueToUser(field string, value string, user *User) (err error) {
+  userStruct := reflect.ValueOf(&user)
+  if userStruct.Kind() != reflect.Struct {
+    return fmt.Errorf("Not a struct")
+  }
+    fmt.Printf("user after setting fields %+v", user)
+
+  userField := userStruct.FieldByName(field)
+  if !userField.IsValid() {
+    return fmt.Errorf("No such field in struct: %s", field)
+  }  
+  userField.SetString(value)
+  return nil
 }
 
 func sendJSONResponse(object jsonResponseSourceObject, response http.ResponseWriter) {

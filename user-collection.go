@@ -68,6 +68,24 @@ func (userStruct *User) insert() (err error) {
   return err
 }
 
+// Update user in mongodb
+func (userStruct *User) Update() (err error) {
+  if userStruct.Mail == "" {
+    return fmt.Errorf("No mail set")
+  }
+  userBson, err := bson.Marshal(userStruct)
+  if err != nil {
+    return err
+  }
+
+  fmt.Printf("update user bson: %q" , userBson)
+
+  update := bson.M{"$set": bson.M{"mail": userStruct.Mail} }
+
+  err = userCollection.Update(bson.M{"id": userStruct.ID}, update)
+  return err
+}
+
 // Find public method of User struct to find a user by id
 func (userStruct *User) Find(id string) (user User, err error) { 
   user, err = getUserByID(id)
