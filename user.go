@@ -181,7 +181,7 @@ func validateFormField(fieldValue string, fieldName string) (err error) {
 
 func addValidFieldValueToUser(field string, value string, user *User) (err error) {
   userStruct := reflect.ValueOf(&user)
-  if userStruct.Kind() != reflect.Struct {
+  if userStruct.Elem().Kind() != reflect.Struct {
     return fmt.Errorf("Not a struct")
   }
     fmt.Printf("user after setting fields %+v", user)
