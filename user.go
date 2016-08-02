@@ -6,6 +6,7 @@ import (
   "encoding/json"
   "fmt"
   "reflect"
+  "log"
 )
 
 type jsonResponseSourceObject interface {}
@@ -142,8 +143,8 @@ func UserUpdate(response http.ResponseWriter, request *http.Request, routeParams
         JSONResponse.Send(response)
         return
     }
-    fmt.Printf("mail after validation: %+v", value)
-    err = addValidFieldValueToUser(field, value, &user)
+    // AddValidFieldValuentf("mail after validation: %+v", value)
+    err = AddValidFieldValueToUser(field, value, &user)
     if err != nil {
       JSONResponse := JSONError {
           Status: "Error",
@@ -179,12 +180,13 @@ func validateFormField(fieldValue string, fieldName string) (err error) {
   return
 }
 
-func addValidFieldValueToUser(field string, value string, user *User) (err error) {
+// AddValidFieldValue changes a field's value in the user struct
+func AddValidFieldValueToUser(field string, value string, user *User) (err error) {
   userStruct := reflect.ValueOf(&user)
   if userStruct.Elem().Kind() != reflect.Struct {
     return fmt.Errorf("Not a struct")
   }
-    fmt.Printf("user after setting fields %+v", user)
+  log.Printf("user after setting fields %+v", user)
 
   userField := userStruct.FieldByName(field)
   if !userField.IsValid() {
