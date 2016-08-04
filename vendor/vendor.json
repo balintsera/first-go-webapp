@@ -1,0 +1,103 @@
+{
+	"comment": "",
+	"heroku": {
+		"goVersion": "go1.6",
+		"install": [
+			"./..."
+		]
+	},
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "P3zGmsNjW8m15a+nks4FdVpFKwE=",
+			"path": "github.com/gopherjs/gopherjs/js",
+			"revision": "72e303cb5f235b23471872477b57e573dc1c71d0",
+			"revisionTime": "2016-07-16T15:30:12Z"
+		},
+		{
+			"checksumSHA1": "tewA7jXVGCw1zb5mA0BDecWi4iQ=",
+			"path": "github.com/jtolds/gls",
+			"revision": "8ddce2a84170772b95dd5d576c48d517b22cac63",
+			"revisionTime": "2016-01-05T22:08:40Z"
+		},
+		{
+			"checksumSHA1": "ZlMAbft1P8lvlCXZkmBFIDip1kk=",
+			"path": "github.com/julienschmidt/httprouter",
+			"revision": "fb79d6a91d3e4a9ecb6d945b218d78fc0d9b1939",
+			"revisionTime": "2016-07-11T18:09:06Z"
+		},
+		{
+			"checksumSHA1": "zmC8/3V4ls53DJlNTKDZwPSC/dA=",
+			"path": "github.com/satori/go.uuid",
+			"revision": "0aa62d5ddceb50dbcb909d790b5345affd3669b6",
+			"revisionTime": "2016-07-13T18:03:06Z"
+		},
+		{
+			"checksumSHA1": "6AYg4fjEvFuAVN3wHakGApjhZAM=",
+			"path": "github.com/smartystreets/assertions",
+			"revision": "2063fd1cc7c975db70502811a34b06ad034ccdf2",
+			"revisionTime": "2016-07-07T19:03:55Z"
+		},
+		{
+			"checksumSHA1": "Vzb+dEH/LTYbvr8RXHmt6xJHz04=",
+			"path": "github.com/smartystreets/assertions/internal/go-render/render",
+			"revision": "2063fd1cc7c975db70502811a34b06ad034ccdf2",
+			"revisionTime": "2016-07-07T19:03:55Z"
+		},
+		{
+			"checksumSHA1": "SLC6TfV4icQA9l8YJQu8acJYbuo=",
+			"path": "github.com/smartystreets/assertions/internal/oglematchers",
+			"revision": "2063fd1cc7c975db70502811a34b06ad034ccdf2",
+			"revisionTime": "2016-07-07T19:03:55Z"
+		},
+		{
+			"checksumSHA1": "/mwAihy9AmznMzmbPQ5nWJXBiRU=",
+			"path": "github.com/smartystreets/goconvey/convey",
+			"revision": "4622128e06c77c0174e17a7f0ed2db19a989b473",
+			"revisionTime": "2016-07-04T13:49:50Z"
+		},
+		{
+			"checksumSHA1": "9LakndErFi5uCXtY1KWl0iRnT4c=",
+			"path": "github.com/smartystreets/goconvey/convey/gotest",
+			"revision": "4622128e06c77c0174e17a7f0ed2db19a989b473",
+			"revisionTime": "2016-07-04T13:49:50Z"
+		},
+		{
+			"checksumSHA1": "FWDhk37bhAwZ2363D/L2xePwR64=",
+			"path": "github.com/smartystreets/goconvey/convey/reporting",
+			"revision": "4622128e06c77c0174e17a7f0ed2db19a989b473",
+			"revisionTime": "2016-07-04T13:49:50Z"
+		},
+		{
+			"checksumSHA1": "Ye8lEnmzH4uUJ9GONq/Tp3Pekmo=",
+			"path": "gopkg.in/mgo.v2",
+			"revision": "01084657862d7b12d3b10ffd0394357abf8f8bc2",
+			"revisionTime": "2016-08-01T21:38:24Z"
+		},
+		{
+			"checksumSHA1": "X+UmZuc1xY9x8Bj/qVnQNQnGFV0=",
+			"path": "gopkg.in/mgo.v2/bson",
+			"revision": "01084657862d7b12d3b10ffd0394357abf8f8bc2",
+			"revisionTime": "2016-08-01T21:38:24Z"
+		},
+		{
+			"checksumSHA1": "XQsrqoNT1U0KzLxOFcAZVvqhLfk=",
+			"path": "gopkg.in/mgo.v2/internal/json",
+			"revision": "01084657862d7b12d3b10ffd0394357abf8f8bc2",
+			"revisionTime": "2016-08-01T21:38:24Z"
+		},
+		{
+			"checksumSHA1": "LEvMCnprte47qdAxWvQ/zRxVF1U=",
+			"path": "gopkg.in/mgo.v2/internal/sasl",
+			"revision": "01084657862d7b12d3b10ffd0394357abf8f8bc2",
+			"revisionTime": "2016-08-01T21:38:24Z"
+		},
+		{
+			"checksumSHA1": "+1WDRPaOphSCmRMxVPIPBV4aubc=",
+			"path": "gopkg.in/mgo.v2/internal/scram",
+			"revision": "01084657862d7b12d3b10ffd0394357abf8f8bc2",
+			"revisionTime": "2016-08-01T21:38:24Z"
+		}
+	],
+	"rootPath": "twitter-epub"
+}
