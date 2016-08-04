@@ -87,12 +87,6 @@
 			"revisionTime": "2016-08-01T21:38:24Z"
 		},
 		{
-			"checksumSHA1": "LEvMCnprte47qdAxWvQ/zRxVF1U=",
-			"path": "gopkg.in/mgo.v2/internal/sasl",
-			"revision": "01084657862d7b12d3b10ffd0394357abf8f8bc2",
-			"revisionTime": "2016-08-01T21:38:24Z"
-		},
-		{
 			"checksumSHA1": "+1WDRPaOphSCmRMxVPIPBV4aubc=",
 			"path": "gopkg.in/mgo.v2/internal/scram",
 			"revision": "01084657862d7b12d3b10ffd0394357abf8f8bc2",
