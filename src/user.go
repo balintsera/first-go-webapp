@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"reflect"
 	"strings"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 type jsonResponseSourceObject interface{}
@@ -29,6 +30,25 @@ func UserIndex(response http.ResponseWriter, request *http.Request, routeParams 
 
 	// Send user list
 	sendJSONResponse(users, response)
+}
+
+// Delete a user via Delete
+func UserDelete(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params) {
+	println("UserDelete: " + routeParams.ByName("id"))
+	// validate id?
+	user, err := getUserByID(routeParams.ByName("id"))
+	if err != nil {
+		// User not found or some other error, send error
+		JSONResponse := JSONError{
+			Status:        "Error",
+			HTTPErrorCode: http.StatusBadRequest,
+			Message:       fmt.Sprintf(`User not found by this id %s`, routeParams.ByName("id")),
+		}
+		JSONResponse.Send(response)
+		return
+	}
+	sendJSONResponse(user, response)
+	return
 }
 
 // UserCreate create a new user via POST
@@ -147,7 +167,7 @@ func UserUpdate(response http.ResponseWriter, request *http.Request, routeParams
 		// AddValidFieldValuentf("mail after validation: %+v", value)
 		err = AddValidFieldValueToUser(field, value, &user)
 		if err != nil {
-      fmt.Printf("unkonwn err: %+v", err)
+			fmt.Printf("unkonwn err: %+v", err)
 			JSONResponse := JSONError{
 				Status:        "Error",
 				HTTPErrorCode: http.StatusInternalServerError,
@@ -157,7 +177,7 @@ func UserUpdate(response http.ResponseWriter, request *http.Request, routeParams
 			return
 		}
 	}
-	
+
 	err := user.Update()
 	if err != nil {
 		JSONResponse := JSONError{
@@ -186,7 +206,7 @@ func validateFormField(fieldValue string, fieldName string) (err error) {
 
 // AddValidFieldValue changes a field's value in the user struct
 func AddValidFieldValueToUser(field string, value string, user *User) (err error) {
-	// Set field name to Uppercase 
+	// Set field name to Uppercase
 	field = strings.Title(field)
 	// Fetch the field reflect.Value
 	structValue := reflect.ValueOf(user).Elem()
