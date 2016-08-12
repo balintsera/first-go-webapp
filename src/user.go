@@ -47,6 +47,17 @@ func UserDelete(response http.ResponseWriter, request *http.Request, routeParams
 		JSONResponse.Send(response)
 		return
 	}
+	err = user.Remove()
+	if err != nil {
+		// User not found or some other error, send error
+		JSONResponse := JSONError{
+			Status:        "Error",
+			HTTPErrorCode: http.StatusBadRequest,
+			Message:       fmt.Sprintf(`Error when deleting user. Id: %s`, routeParams.ByName("id")),
+		}
+		JSONResponse.Send(response)
+		return
+	}
 	sendJSONResponse(user, response)
 	return
 }
