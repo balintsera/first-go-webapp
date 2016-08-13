@@ -1,4 +1,4 @@
-package main
+package model
 
 import (
 	"fmt"
@@ -57,14 +57,15 @@ type User struct {
 	Posts    []post
 }
 
-// generateId creates a pseudo ranodom string for the user Id
-func (userStruct *User) generateID() {
+// GenerateID creates a pseudo ranodom string for the user Id
+func (userStruct *User) GenerateID() {
 	uuidID := []byte(uuid.NewV1().String())
 	// Cut to 8 char length
 	userStruct.ID = string(uuidID[:idLength])
 }
 
-func (userStruct *User) insert() (err error) {
+// Insert user to collection
+func (userStruct *User) Insert() (err error) {
 	err = userCollection.Insert(&userStruct)
 	return err
 }
@@ -95,6 +96,7 @@ func (userStruct User) Remove() (err error) {
 
 // Find public method of User struct to find a user by id
 func (userStruct *User) Find(id string) (user User, err error) {
+
 	user, err = getUserByID(id)
 	if err != nil {
 		// no user found
@@ -115,11 +117,13 @@ func (userStruct *User) FindAll() (users []User, err error) {
 	return users, nil
 }
 
+// getUserByID get a user by its id
 func getUserByID(id string) (user User, err error) {
 	return findBy("id", id)
 }
 
-func getUserByMail(mail string) (user User, err error) {
+// GetUserByMail Gets a user by email
+func GetUserByMail(mail string) (user User, err error) {
 	return findBy("mail", mail)
 }
 

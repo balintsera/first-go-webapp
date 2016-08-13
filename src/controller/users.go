@@ -1,77 +1,78 @@
-package main
+package controller
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
 
+	"twitter-epub/src/model"
+	"twitter-epub/src/service"
+
 	"github.com/julienschmidt/httprouter"
 )
 
-type jsonResponseSourceObject interface{}
-
-// UserIndex lists users
-func UserIndex(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params) {
-	println("UserIndex")
-	var user User
+// UsersIndex lists Userss
+func UsersIndex(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params) {
+	println("UsersIndex")
+	var user model.User
 	users, err := user.FindAll()
 	if err != nil {
-		JSONResponse := JSONError{
+		JSONResponse := service.JSONError{
 			Status:        "Error",
 			HTTPErrorCode: http.StatusNotFound,
-			Message:       "No user found",
+			Message:       "No Users found",
 		}
 		JSONResponse.Send(response)
 		return
 	}
 
-	// Send user list
-	sendJSONResponse(users, response)
+	// Send Users list
+	service.SendJSONResponse(users, response)
 }
 
-// Delete a user via Delete
-func UserDelete(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params) {
-	println("UserDelete: " + routeParams.ByName("id"))
+// UsersDelete deletes a user via Delete
+func UsersDelete(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params) {
+	println("UsersDelete: " + routeParams.ByName("id"))
 	// validate id?
-	user, err := getUserByID(routeParams.ByName("id"))
+	user := model.User{}
+	user, err := user.Find(routeParams.ByName("id"))
 	if err != nil {
-		// User not found or some other error, send error
-		JSONResponse := JSONError{
+		// Users not found or some other error, send error
+		JSONResponse := service.JSONError{
 			Status:        "Error",
 			HTTPErrorCode: http.StatusBadRequest,
-			Message:       fmt.Sprintf(`User not found by this id %s`, routeParams.ByName("id")),
+			Message:       fmt.Sprintf(`Users not found by this id %s`, routeParams.ByName("id")),
 		}
 		JSONResponse.Send(response)
 		return
 	}
 	err = user.Remove()
 	if err != nil {
-		// User not found or some other error, send error
-		JSONResponse := JSONError{
+		// Users not found or some other error, send error
+		JSONResponse := service.JSONError{
 			Status:        "Error",
 			HTTPErrorCode: http.StatusBadRequest,
-			Message:       fmt.Sprintf(`Error when deleting user. Id: %s`, routeParams.ByName("id")),
+			Message:       fmt.Sprintf(`Error when deleting Users. Id: %s`, routeParams.ByName("id")),
 		}
 		JSONResponse.Send(response)
 		return
 	}
-	sendJSONResponse(user, response)
+	service.SendJSONResponse(user, response)
 	return
 }
 
-// UserCreate create a new user via POST
-func UserCreate(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params) {
-	println("UserCreate")
+// UsersCreate create a new Users via POST
+func UsersCreate(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params) {
+	println("UsersCreate")
 
 	request.ParseForm()
 
 	// Validation: is mail field set?
 	if len(request.Form.Get("mail")) < 1 {
 		// Not set, send error
-		JSONResponse := JSONError{
+		JSONResponse := service.JSONError{
 			Status:        "Error",
 			HTTPErrorCode: http.StatusBadRequest,
 			Message:       "'mail' parameter is mandatory",
@@ -81,10 +82,10 @@ func UserCreate(response http.ResponseWriter, request *http.Request, routeParams
 	}
 
 	// Validate email via regexp
-	validator := Validation{fieldType: FieldTypeMail, value: request.Form.Get("mail")}
+	validator := service.Validation{FieldType: service.FieldTypeMail, Value: request.Form.Get("mail")}
 	validator.Run()
-	if !validator.valid {
-		JSONResponse := JSONError{
+	if !validator.Valid {
+		JSONResponse := service.JSONError{
 			Status:        "Error",
 			HTTPErrorCode: http.StatusBadRequest,
 			Message:       "'mail' parameter is not valid. Please use a valid mail address. You sent: " + request.Form.Get("mail"),
@@ -94,14 +95,14 @@ func UserCreate(response http.ResponseWriter, request *http.Request, routeParams
 	}
 
 	// Check for existence
-	found, _ := getUserByMail(request.Form.Get("mail"))
+	found, _ := model.GetUserByMail(request.Form.Get("mail"))
 	fmt.Printf("found mail: %+v", found)
 	// err is true if not found
 	if len(found.Mail) > 0 {
-		JSONResponse := JSONError{
+		JSONResponse := service.JSONError{
 			Status:        "Error",
 			HTTPErrorCode: http.StatusBadRequest,
-			Message:       "A user is already registered with this mail",
+			Message:       "A Users is already registered with this mail",
 		}
 		JSONResponse.Send(response)
 		return
@@ -110,26 +111,26 @@ func UserCreate(response http.ResponseWriter, request *http.Request, routeParams
 	fmt.Printf("mail %+v", request.Form.Get("mail"))
 
 	// Creation
-	user := User{Mail: request.Form.Get("mail")}
-	user.generateID()
-	user.insert()
+	user := model.User{Mail: request.Form.Get("mail")}
+	user.GenerateID()
+	user.Insert()
 
 	// @TODO insert to database
 	fmt.Printf("new user: %+v", user)
-	sendJSONResponse(user, response)
+	service.SendJSONResponse(user, response)
 }
 
-// UserShow display a user
-func UserShow(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params) {
-	println("UserShow")
-	var user User
+// UsersShow display a Users
+func UsersShow(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params) {
+	println("UsersShow")
+	var user model.User
 	user, err := user.Find(routeParams.ByName("id"))
 	if err != nil {
 		// send http error header
-		JSONResponse := JSONError{
+		JSONResponse := service.JSONError{
 			Status:        "Error",
 			HTTPErrorCode: http.StatusNotFound,
-			Message:       "User not found",
+			Message:       "Users not found",
 		}
 		err := JSONResponse.Send(response)
 		if err != nil {
@@ -140,25 +141,25 @@ func UserShow(response http.ResponseWriter, request *http.Request, routeParams h
 
 	// Send response
 	if err != nil {
-		JSONResponse := JSONError{
+		JSONResponse := service.JSONError{
 			Status:        "Error",
 			HTTPErrorCode: http.StatusInternalServerError,
-			Message:       "Unknown error occured when trying to convert user object to json",
+			Message:       "Unknown error occured when trying to convert Users object to json",
 		}
 		JSONResponse.Send(response)
 		return
 	}
-	sendJSONResponse(user, response)
+	service.SendJSONResponse(user, response)
 }
 
-// UserUpdate update a user
-func UserUpdate(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params) {
+// UsersUpdate update a Users
+func UsersUpdate(response http.ResponseWriter, request *http.Request, routeParams httprouter.Params) {
 	request.ParseForm()
 	fmt.Printf("put request %+v", request.Form)
-	println("UserUpdate")
+	println("UsersUpdate")
 
 	enabledFormFields := [1]string{"mail"}
-	user := User{ID: routeParams.ByName("id")}
+	user := model.User{ID: routeParams.ByName("id")}
 	for _, field := range enabledFormFields {
 		// Get data from field
 		value := request.Form.Get(field)
@@ -167,7 +168,7 @@ func UserUpdate(response http.ResponseWriter, request *http.Request, routeParams
 		}
 		err := validateFormField(value, field)
 		if err != nil {
-			JSONResponse := JSONError{
+			JSONResponse := service.JSONError{
 				Status:        "Error",
 				HTTPErrorCode: http.StatusBadRequest,
 				Message:       "Invalid form value in request: " + value + " for field: " + field,
@@ -179,10 +180,10 @@ func UserUpdate(response http.ResponseWriter, request *http.Request, routeParams
 		err = AddValidFieldValueToUser(field, value, &user)
 		if err != nil {
 			fmt.Printf("unkonwn err: %+v", err)
-			JSONResponse := JSONError{
+			JSONResponse := service.JSONError{
 				Status:        "Error",
 				HTTPErrorCode: http.StatusInternalServerError,
-				Message:       "Unknown error when setting user field: " + field,
+				Message:       "Unknown error when setting user's field: " + field,
 			}
 			JSONResponse.Send(response)
 			return
@@ -191,32 +192,32 @@ func UserUpdate(response http.ResponseWriter, request *http.Request, routeParams
 
 	err := user.Update()
 	if err != nil {
-		JSONResponse := JSONError{
+		JSONResponse := service.JSONError{
 			Status:        "Error",
 			HTTPErrorCode: http.StatusInternalServerError,
-			Message:       "Eerror when saving user",
+			Message:       "Eerror when saving Users",
 		}
 		fmt.Printf("Error: %+v", err)
 		JSONResponse.Send(response)
 		return
 	}
-	sendJSONResponse(user, response)
+	service.SendJSONResponse(user, response)
 	return
 }
 
 func validateFormField(fieldValue string, fieldName string) (err error) {
 	// Validate data
-	validator := Validation{value: fieldValue, fieldName: fieldName}
+	validator := service.Validation{Value: fieldValue, FieldName: fieldName}
 	validator.SetRule(0)
 	validator.Run()
-	if !validator.valid {
+	if !validator.Valid {
 		return
 	}
 	return
 }
 
-// AddValidFieldValue changes a field's value in the user struct
-func AddValidFieldValueToUser(field string, value string, user *User) (err error) {
+// AddValidFieldValueToUser changes a field's value in the Users struct
+func AddValidFieldValueToUser(field string, value string, user *model.User) (err error) {
 	// Set field name to Uppercase
 	field = strings.Title(field)
 	// Fetch the field reflect.Value
@@ -242,13 +243,4 @@ func AddValidFieldValueToUser(field string, value string, user *User) (err error
 	structFieldValue.Set(val)
 
 	return nil
-}
-
-func sendJSONResponse(object jsonResponseSourceObject, response http.ResponseWriter) {
-	response.Header().Set("Content-Type", "application/json")
-	jsonResponse, err := json.Marshal(object)
-	if err != nil {
-		panic("JSON conversion failed")
-	}
-	response.Write(jsonResponse)
 }

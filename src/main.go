@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"twitter-epub/src/controller"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -14,14 +15,19 @@ const (
 func main() {
 	router := httprouter.New()
 
-	// User Collection resources
-	router.GET(Endpoint+"/users", UserIndex)
-	router.POST(Endpoint+"/users", UserCreate)
+	// Users Collection resources
+	router.GET(Endpoint+"/users", controller.UsersIndex)
+	router.POST(Endpoint+"/users", controller.UsersCreate)
 
-	// User singular
-	router.GET(Endpoint+"/users/:id", UserShow)
-	router.PUT(Endpoint+"/users/:id", UserUpdate)
-	router.DELETE(Endpoint+"/users/:id", UserDelete)
+	// Users singular
+	router.GET(Endpoint+"/users/:id", controller.UsersShow)
+	router.PUT(Endpoint+"/users/:id", controller.UsersUpdate)
+	router.DELETE(Endpoint+"/users/:id", controller.UsersDelete)
+
+	// Users.accounts
+	router.GET(Endpoint+"/users/:id/accounts", controller.AccountsIndex)
+	router.POST(Endpoint+"/users/:id/accounts", controller.AccountsCreate)
+
 	// Frontpage
 	router.GET("/", HomeIndex)
 
