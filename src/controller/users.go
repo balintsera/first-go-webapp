@@ -208,7 +208,6 @@ func UsersUpdate(response http.ResponseWriter, request *http.Request, routeParam
 func validateFormField(fieldValue string, fieldName string) (err error) {
 	// Validate data
 	validator := service.Validation{Value: fieldValue, FieldName: fieldName}
-	validator.SetRule(0)
 	validator.Run()
 	if !validator.Valid {
 		return

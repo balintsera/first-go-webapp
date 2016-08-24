@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"twitter-epub/src/service"
 
 	"github.com/satori/go.uuid"
 	"gopkg.in/mgo.v2"
@@ -13,34 +14,9 @@ const (
 	idLength   = 8
 )
 
-func init() {
-	// get config
-
-	connectToMongo()
-}
-
-var mongoSession *mgo.Session
 var userCollection *mgo.Collection
 
 type mongoResult interface{}
-
-func connectToMongo() {
-	var err error
-	mongoSession, err = mgo.Dial("localhost:27017")
-	if err != nil {
-		panic("Can't connect to database")
-	}
-	mongoSession.SetMode(mgo.Monotonic, true)
-	userCollection = mongoSession.DB("testgo").C("users")
-}
-
-// @TODO move this to a dedicated dir ?
-type account struct {
-	id         string
-	title      string
-	url        string
-	oauthToken string
-}
 
 type post struct {
 	id      string
@@ -53,8 +29,12 @@ type post struct {
 type User struct {
 	ID       string
 	Mail     string
-	Accounts []account
+	Accounts []Account
 	Posts    []post
+}
+
+func init() {
+	userCollection = service.GetMongoCollection("users")
 }
 
 // GenerateID creates a pseudo ranodom string for the user Id
